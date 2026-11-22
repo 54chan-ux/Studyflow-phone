@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StudyFlow">
+<title>StudyFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='50' y='67' font-size='58' text-anchor='middle' fill='white' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#f5f5f3;--card:#fff;--fg:#171717;--muted:#777;--line:#e6e6e3;--soft:#ededeb;--accent:#171717}
+:root.dark{--bg:#111;--card:#1d1d1d;--fg:#f5f5f5;--muted:#aaa;--line:#333;--soft:#292929;--accent:#f5f5f5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{padding:22px 20px 14px;display:flex;justify-content:space-between;align-items:center}h1{font-size:27px;letter-spacing:-1px;margin:0;font-weight:800}.sub{font-size:12px;color:var(--muted);margin-top:4px}
+button,input,select{font:inherit}button{border:0;border-radius:12px;background:var(--fg);color:var(--bg);padding:11px 14px;font-weight:650}button.secondary{background:var(--soft);color:var(--fg)}button.ghost{background:transparent;color:var(--fg);padding:8px}
+nav{display:flex;gap:7px;padding:0 16px 14px;overflow:auto}nav button{white-space:nowrap;background:var(--soft);color:var(--muted);font-size:13px;padding:9px 13px}nav button.active{background:var(--fg);color:var(--bg)}
+main{padding:0 16px 35px;max-width:700px;margin:auto}.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.muted{color:var(--muted);font-size:13px}.big{font-size:28px;font-weight:800;letter-spacing:-1px}.bar{height:8px;background:var(--soft);border-radius:99px;overflow:hidden;margin-top:10px}.bar span{display:block;height:100%;background:var(--fg);border-radius:99px}
+h2{font-size:17px;margin:0 0 12px}h3{font-size:15px;margin:0}.stack{display:grid;gap:9px}.item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}.item .grow{flex:1;min-width:0}.item small{display:block;color:var(--muted);margin-top:3px}.check{width:22px;height:22px;accent-color:var(--fg)}.pill{font-size:11px;color:var(--muted);background:var(--soft);padding:5px 8px;border-radius:99px}
+input,select{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:12px;border-radius:11px;outline:none}label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:9px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.empty{text-align:center;color:var(--muted);padding:22px 8px;font-size:13px}.danger{color:#b44!important}.hidden{display:none!important}.taskdate{font-size:12px;color:var(--muted);margin:0 0 10px}.sectionhead{margin:18px 2px 10px;display:flex;justify-content:space-between;align-items:center}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30px}
+</style>
+</head>
+<body>
+<header><div><h1>StudyFlow<span style="font-weight:400">.</span></h1><div class="sub">讓每一天的努力都有方向</div></div><button class="ghost" id="themeBtn" aria-label="切換深色模式">◐</button></header>
+<nav id="tabs">
+<button class="active" data-tab="today">今日</button><button data-tab="subjects">科目</button><button data-tab="exams">考試</button><button data-tab="stats">統計</button><button data-tab="settings">設定</button>
+</nav>
+<main id="app"></main>
+<footer>StudyFlow · 資料儲存在這台 iPhone</footer>
+<script>
+const KEY='studyflow_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"subjects":[],"units":[],"tasks":[],"exams":[],"examUnits":[]}');
+let tab='today';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function pct(a,b){return b?Math.round(a/b*100):0}
+function subjectName(id){return db.subjects.find(x=>x.id===id)?.name||'未分類'}
+function render(){
+ const root=$('#app'); $('#tabs').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+ if(tab==='today') root.innerHTML=todayView();
+ if(tab==='subjects') root.innerHTML=subjectsView();
+ if(tab==='exams') root.innerHTML=examsView();
+ if(tab==='stats') root.innerHTML=statsView();
+ if(tab==='settings') root.innerHTML=settingsView();
+}
+function todayView(){
+ let tasks=db.tasks.filter(t=>t.date===today()),done=tasks.filter(t=>t.done).length,open=tasks.filter(t=>!t.done);
+ return `<div class="panel"><div class="row"><div><div class="muted">今天的學習進度</div><div class="big">${pct(done,tasks.length)}%</div></div><span class="pill">${done} / ${tasks.length} 完成</span></div><div class="bar"><span style="width:${pct(done,tasks.length)}%"></span></div></div>
+ <div class="sectionhead"><h2>今日任務</h2><button onclick="addTask()">＋ 新增</button></div>
+ ${open.length?`<div class="panel">${open.map(t=>taskRow(t)).join('')}</div>`:'<div class="panel empty">${tasks.length?'今天的任務都完成了！':'今天還沒有任務，新增一項開始吧。'}</div>'}
+ ${done?`<div class="sectionhead"><h2>已完成</h2><span class="pill">${done}</span></div><div class="panel">${tasks.filter(t=>t.done).map(t=>taskRow(t)).join('')}</div>`:''}
+ <div class="sectionhead"><h2>快速新增任務</h2></div><div class="panel"><input id="quickTask" placeholder="例如：完成英文單字 20 個"><div class="actions"><button onclick="quickAdd()">加入今日任務</button></div></div>`;
+}
+function taskRow(t){return `<div class="item"><input class="check" type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')"><div class="grow"><strong>${esc(t.title)}</strong><small>${t.unit?esc(db.units.find(u=>u.id===t.unit)?.name||''):''}</small></div><button class="ghost danger" onclick="delTask('${t.id}')">刪除</button></div>`}
+function subjectsView(){
+ return `<div class="row sectionhead"><h2>我的科目</h2><button onclick="addSubject()">＋ 新增科目</button></div>
+ ${db.subjects.length?db.subjects.map(s=>{let us=db.units.filter(u=>u.subject===s.id),d=us.filter(u=>u.done).length;return `<div class="panel"><div class="row"><div><h2>${esc(s.name)}</h2><div class="muted">${d}/${us.length} 個單元完成</div></div><button class="secondary" onclick="addUnit('${s.id}')">＋ 單元</button></div><div class="bar"><span style="width:${pct(d,us.length)}%"></span></div>${us.length?us.map(u=>`<div class="item"><input class="check" type="checkbox" ${u.done?'checked':''} onchange="toggleUnit('${u.id}')"><div class="grow">${esc(u.name)}</div><button class="ghost" onclick="makeTask('${u.id}')">排入今日</button></div>`).join(''):'<div class="empty">尚未新增單元</div>'}</div>`}).join(''):'<div class="panel empty">先新增一個科目，例如：國文、英文、數學。</div>'}`;
+}
+function examsView(){
+ return `<div class="row sectionhead"><h2>考試管理</h2><button onclick="addExam()">＋ 新增考試</button></div>
+ ${db.exams.length?db.exams.map(e=>{let ids=db.examUnits.filter(x=>x.exam===e.id),units=ids.map(x=>db.units.find(u=>u.id===x.unit)).filter(Boolean),done=units.filter(u=>u.done).length;return `<div class="panel"><div class="row"><div><h2>${esc(e.name)}</h2><div class="muted">${esc(e.date||'未設定日期')} · ${units.length} 個範圍單元</div></div><button class="ghost danger" onclick="delExam('${e.id}')">刪除</button></div><div class="row" style="margin-top:12px"><span class="muted">準備進度</span><strong>${pct(done,units.length)}%</strong></div><div class="bar"><span style="width:${pct(done,units.length)}%"></span></div><div class="actions"><button class="secondary" onclick="chooseExamUnits('${e.id}')">設定考試範圍</button></div></div>`}).join(''):'<div class="panel empty">新增考試日期與範圍，追蹤準備進度。</div>'}`;
+}
+function statsView(){
+ let total=db.units.length,done=db.units.filter(u=>u.done).length,taskTotal=db.tasks.length,taskDone=db.tasks.filter(t=>t.done).length;
+ return `<div class="panel"><div class="muted">單元完成率</div><div class="big">${pct(done,total)}%</div><div class="bar"><span style="width:${pct(done,total)}%"></span></div><div class="muted" style="margin-top:8px">${done} / ${total} 個單元</div></div><div class="panel"><div class="muted">任務完成率</div><div class="big">${pct(taskDone,taskTotal)}%</div><div class="bar"><span style="width:${pct(taskDone,taskTotal)}%"></span></div><div class="muted" style="margin-top:8px">${taskDone} / ${taskTotal} 項任務</div></div><div class="panel"><h2>各科目進度</h2>${db.subjects.length?db.subjects.map(s=>{let a=db.units.filter(u=>u.subject===s.id),d=a.filter(u=>u.done).length;return `<div style="margin:13px 0"><div class="row"><strong>${esc(s.name)}</strong><span class="muted">${pct(d,a.length)}%</span></div><div class="bar"><span style="width:${pct(d,a.length)}%"></span></div></div>`}).join(''):'<div class="empty">新增科目後會顯示統計。</div>'}</div>`;
+}
+function settingsView(){return `<div class="panel"><h2>資料備份</h2><p class="muted">資料只存在這台 iPhone。建議定期匯出備份。</p><div class="actions"><button onclick="backup()">匯出備份</button><button class="secondary" onclick="$('#restoreFile').click()">匯入備份</button><input id="restoreFile" class="hidden" type="file" accept="application/json" onchange="restore(event)"></div></div><div class="panel"><h2>資料管理</h2><p class="muted">清除資料會刪除這台裝置上的所有科目、單元、任務與考試。</p><button class="secondary danger" onclick="clearAll()">清除所有資料</button></div><div class="panel"><h2>使用說明</h2><p class="muted">在 Safari 開啟 StudyFlow，按分享圖示，再選「加入主畫面」，即可從 iPhone 主畫面開啟。</p></div>`}
+function addSubject(){let n=prompt('科目名稱');if(n?.trim()){db.subjects.push({id:id(),name:n.trim()});save()}}
+function addUnit(s){let n=prompt('單元名稱');if(n?.trim()){db.units.push({id:id(),subject:s,name:n.trim(),done:false});save()}}
+function toggleUnit(i){let u=db.units.find(x=>x.id===i);u.done=!u.done;save()}
+function addTask(){let n=prompt('任務內容');if(n?.trim()){db.tasks.push({id:id(),title:n.trim(),date:today(),done:false});save()}}
+function quickAdd(){let el=$('#quickTask');if(el.value.trim()){db.tasks.push({id:id(),title:el.value.trim(),date:today(),done:false});save()}}
+function makeTask(i){let u=db.units.find(x=>x.id===i);db.tasks.push({id:id(),title:u.name,date:today(),done:false,unit:i});save();alert('已加入今日任務！')}
+function toggleTask(i){let t=db.tasks.find(x=>x.id===i);t.done=!t.done;save()}
+function delTask(i){if(confirm('確定刪除此任務？')){db.tasks=db.tasks.filter(x=>x.id!==i);save()}}
+function addExam(){let n=prompt('考試名稱，例如：第一次模擬考');if(!n?.trim())return;let d=prompt('考試日期（YYYY-MM-DD，可留空）','');db.exams.push({id:id(),name:n.trim(),date:d||''});save()}
+function chooseExamUnits(e){let choices=db.units.map((u,i)=>`${i+1}. ${subjectName(u.subject)}｜${u.name}`).join('\n');if(!choices){alert('請先到「科目」新增單元。');return}let raw=prompt('輸入要加入考試範圍的單元編號，多個用逗號分隔：\n'+choices);if(!raw)return;let nums=raw.split(/[,，\s]+/).map(Number).filter(n=>n>0&&n<=db.units.length);nums.forEach(n=>{let u=db.units[n-1];if(!db.examUnits.some(x=>x.exam===e&&x.unit===u.id))db.examUnits.push({exam:e,unit:u.id})});save()}
+function delExam(i){if(confirm('確定刪除此考試？')){db.exams=db.exams.filter(x=>x.id!==i);db.examUnits=db.examUnits.filter(x=>x.exam!==i);save()}}
+function backup(){let b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='StudyFlow-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function restore(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.subjects||!x.units||!x.tasks||!x.exams)throw 0;if(confirm('匯入會覆蓋目前資料，確定嗎？')){db=x;save();alert('匯入完成')}}catch{alert('備份檔格式不正確')}};r.readAsText(f)}
+function clearAll(){if(confirm('確定清除全部資料？此動作無法復原。')){db={subjects:[],units:[],tasks:[],exams:[],examUnits:[]};save()}}
+$('#tabs').addEventListener('click',e=>{let b=e.target.closest('button[data-tab]');if(b){tab=b.dataset.tab;render()}});
+$('#themeBtn').onclick=()=>{document.documentElement.classList.toggle('dark');localStorage.setItem('studyflow_theme',document.documentElement.classList.contains('dark')?'dark':'light')};
+if(localStorage.getItem('studyflow_theme')==='dark')document.documentElement.classList.add('dark');
+render();
+</script>
+</body></html>
