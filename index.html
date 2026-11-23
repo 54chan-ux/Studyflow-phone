@@ -20,11 +20,10 @@ button,input,select{font:inherit}
 button{border:0;border-radius:12px;background:var(--fg);color:var(--bg);padding:11px 14px;font-weight:650;cursor:pointer}
 button.secondary{background:var(--soft);color:var(--fg)}
 button.ghost{background:transparent;color:var(--fg);padding:8px}
-nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:space-around;gap:2px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-nav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap;background:transparent;color:var(--muted);font-size:10px;padding:5px 2px;border-radius:12px}
-nav button .nav-icon{font-size:19px;line-height:1.1}
-nav button.active{background:var(--soft);color:var(--fg)}
-main{padding:0 16px 110px;max-width:700px;margin:auto}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;display:flex;align-items:center;justify-content:space-between;gap:3px;width:calc(100% - 28px);max-width:520px;padding:6px;background:color-mix(in srgb,var(--card) 88%,transparent);border:1px solid var(--line);border-radius:999px;box-shadow:0 6px 24px #00000018;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+nav button{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;white-space:nowrap;background:transparent;color:var(--muted);font-size:12px;font-weight:600;padding:11px 3px;border-radius:999px}
+nav button.active{background:var(--fg);color:var(--bg)}
+main{padding:0 16px 125px;max-width:700px;margin:auto}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .muted{color:var(--muted);font-size:13px}
@@ -58,11 +57,11 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
   <button class="ghost" id="themeBtn" aria-label="切換深色模式" type="button">◐</button>
 </header>
 <nav id="tabs" aria-label="主要功能">
-  <button class="active" data-tab="today" type="button"><span class="nav-icon">⌂</span><span>今日</span></button>
-  <button data-tab="subjects" type="button"><span class="nav-icon">▦</span><span>科目</span></button>
-  <button data-tab="exams" type="button"><span class="nav-icon">◷</span><span>考試</span></button>
-  <button data-tab="stats" type="button"><span class="nav-icon">▥</span><span>統計</span></button>
-  <button data-tab="settings" type="button"><span class="nav-icon">⚙</span><span>設定</span></button>
+  <button class="active" data-tab="today" type="button">今日</button>
+  <button data-tab="subjects" type="button">科目</button>
+  <button data-tab="exams" type="button">考試</button>
+  <button data-tab="stats" type="button">統計</button>
+  <button data-tab="settings" type="button">設定</button>
 </nav>
 <main id="app"></main>
 <footer>StudyFlow · 資料儲存在這台 iPhone</footer>
@@ -188,9 +187,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
   }
 
   function settingsView() {
-    const bg = safeGet('studyflow_bg_color') || '#f5f5f3';
-    return `<div class="panel"><h2>外觀設定</h2><p class="muted">自訂 StudyFlow 的背景顏色。</p><div class="color-row"><input id="bgColorPicker" type="color" value="${esc(bg)}" aria-label="選擇背景顏色"><span class="muted">選擇喜歡的顏色，會自動儲存。</span></div><div class="swatches">${['#f5f5f3','#e8f1ff','#e8f5e9','#fff1e6','#f7e9f5','#f1edff','#20242b'].map(c => `<button class="swatch ${bg.toLowerCase()===c?'selected':''}" type="button" data-action="set-bg" data-color="${c}" style="background:${c}" aria-label="背景色 ${c}"></button>`).join('')}<button class="secondary iconbtn" type="button" data-action="reset-bg">恢復預設</button></div></div>
-      <div class="panel"><h2>資料備份</h2><p class="muted">資料只存在這台 iPhone。建議定期匯出備份。</p><div class="actions"><button type="button" data-action="backup">匯出備份</button><button class="secondary" type="button" data-action="restore-pick">匯入備份</button><input id="restoreFile" class="hidden" type="file" accept="application/json"></div></div>
+    return `<div class="panel"><h2>資料備份</h2><p class="muted">資料只存在這台 iPhone。建議定期匯出備份。</p><div class="actions"><button type="button" data-action="backup">匯出備份</button><button class="secondary" type="button" data-action="restore-pick">匯入備份</button><input id="restoreFile" class="hidden" type="file" accept="application/json"></div></div>
       <div class="panel"><h2>資料管理</h2><p class="muted">清除資料會刪除這台裝置上的所有科目、單元、任務與考試。</p><button class="secondary danger" type="button" data-action="clear-all">清除所有資料</button></div>
       <div class="panel"><h2>使用說明</h2><p class="muted">在 Safari 開啟 StudyFlow，按分享圖示，再選「加入主畫面」，即可從 iPhone 主畫面開啟。</p></div>`;
   }
@@ -280,13 +277,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
     save();
   }
 
-  function setBackground(color) {
-    if (!/^#[0-9a-fA-F]{6}$/.test(color || '')) return;
-    safeSet('studyflow_bg_color', color);
-    document.documentElement.style.setProperty('--page-bg', color);
-    // Keep panels readable while letting the selected color show through the page background.
-    render();
-  }
 
   function backup() {
     const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
@@ -347,8 +337,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
         save();
       }
     } else if (action === 'choose-exam-units') chooseExamUnits(id);
-    else if (action === 'set-bg') setBackground(button.dataset.color);
-    else if (action === 'reset-bg') setBackground('#f5f5f3');
     else if (action === 'backup') backup();
     else if (action === 'restore-pick') $('#restoreFile').click();
     else if (action === 'clear-all') {
@@ -366,8 +354,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
     } else if (action === 'toggle-unit') {
       const unit = db.units.find(x => x.id === id);
       if (unit) { unit.done = input.checked; db.tasks.filter(x => x.unit === id).forEach(task => task.done = input.checked); save(); }
-    } else if (input.id === 'bgColorPicker') {
-      setBackground(input.value);
     } else if (input.id === 'restoreFile') {
       restoreFile(input.files && input.files[0]);
       input.value = '';
@@ -380,8 +366,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
   });
 
   if (safeGet(THEME_KEY) === 'dark') document.documentElement.classList.add('dark');
-  const savedBg = safeGet('studyflow_bg_color');
-  if (savedBg && /^#[0-9a-fA-F]{6}$/.test(savedBg)) document.documentElement.style.setProperty('--page-bg', savedBg);
   render();
 })();
 </script>
