@@ -57,6 +57,9 @@ input,select{min-height:46px;text-align:left}button{min-height:40px;display:inli
 .panel{padding:17px}.sectionhead{gap:10px}.sectionhead h2{margin:0}
 .modal-backdrop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,10,10,.34);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fadeIn .16s ease}
 .task-modal{width:min(100%,390px);max-height:min(82vh,620px);overflow:auto;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:24px;padding:21px;box-shadow:0 20px 60px #0003;animation:modalUp .18s ease-out}
+.datetime-center{text-align:center;text-align-last:center;padding-left:8px;padding-right:8px}
+.datetime-center::-webkit-date-and-time-value{text-align:center;margin:0 auto;width:100%}
+.datetime-center::-webkit-calendar-picker-indicator{margin-left:6px}
 .task-modal h2{margin:3px 0 0}.task-modal .row{margin-bottom:10px}.task-modal .actions{margin-top:18px}.task-modal .primary-action{width:100%}
 .rest-chip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;margin:3px 0 7px 34px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes modalUp{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -154,14 +157,14 @@ input,select{min-height:46px;text-align:left}button{min-height:40px;display:inli
     const tasks = db.tasks.filter(t => t.date === localDate()).sort((a,b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
     const done = tasks.filter(t => t.done).length;
     const open = tasks.filter(t => !t.done);
-    const schedule = tasks.map(task => {
+    const schedule = open.map(task => {
       const rests = (db.rests || []).filter(r => r.date === localDate() && r.afterTaskId === task.id);
       return taskRow(task) + rests.map(restRow).join('');
     }).join('');
     const restsWithoutAnchor = (db.rests || []).filter(r => r.date === localDate() && !tasks.some(t => t.id === r.afterTaskId));
     return `<div class="panel"><div class="row"><div><div class="muted">今天的學習進度</div><div class="big">${percent(done, tasks.length)}%</div></div><span class="pill">${done} / ${tasks.length} 完成</span></div><div class="bar"><span style="width:${percent(done, tasks.length)}%"></span></div></div>
       <div class="sectionhead"><h2>今日任務</h2><div class="head-actions"><button class="secondary" type="button" data-action="add-rest">＋ 新增休息</button><button type="button" data-action="add-task">＋ 新增</button></div></div>
-      ${tasks.length || restsWithoutAnchor.length ? `<div class="panel">${schedule}${restsWithoutAnchor.map(restRow).join('')}</div>` : `<div class="panel empty">今天還沒有任務，新增一項開始吧。</div>`}
+      ${open.length || restsWithoutAnchor.length ? `<div class="panel">${schedule}${restsWithoutAnchor.map(restRow).join('')}</div>` : `<div class="panel empty">今天還沒有待完成任務，新增一項開始吧。</div>`}
       ${done ? `<div class="sectionhead"><h2>已完成</h2><span class="pill">${done}</span></div><div class="panel">${tasks.filter(t => t.done).map(taskRow).join('')}</div>` : ''}
       <div class="sectionhead"><h2>快速新增任務</h2></div><div class="panel"><input id="quickTask" placeholder="例如：完成英文單字 20 個"><div class="actions"><button type="button" data-action="quick-add">加入今日任務</button></div></div>`;
   }
@@ -170,7 +173,7 @@ input,select{min-height:46px;text-align:left}button{min-height:40px;display:inli
     const isEdit = !!task;
     const value = task || {title: (unitId && db.units.find(x=>x.id===unitId)?.name) || '', date:localDate(), time:'', unit:unitId || ''};
     const dateTime = (value.date || localDate()) + 'T' + (value.time || '19:00');
-    $('#app').insertAdjacentHTML('beforeend', `<div class="modal-backdrop" data-action="modal-close"><div class="task-modal" role="dialog" aria-modal="true" aria-label="${isEdit?'編輯任務':'新增任務'}"><div class="row"><div><div class="muted">STUDYFLOW</div><h2>${isEdit?'編輯任務':'新增任務'}</h2></div><button class="ghost" type="button" data-action="cancel-task">取消</button></div><label for="taskTitle">任務內容</label><input id="taskTitle" value="${esc(value.title)}" placeholder="例如：數學第三章"/><label for="taskDateTime">日期與時間</label><input id="taskDateTime" type="datetime-local" value="${esc(dateTime)}"/><div class="formhint">在同一個小視窗中選擇日期與開始時間。</div><input id="taskUnit" type="hidden" value="${esc(value.unit || '')}"/><input id="taskId" type="hidden" value="${esc(value.id || '')}"/><div class="actions"><button class="primary-action" type="button" data-action="save-task">${isEdit?'儲存修改':'建立任務'}</button></div></div></div>`);
+    $('#app').insertAdjacentHTML('beforeend', `<div class="modal-backdrop" data-action="modal-close"><div class="task-modal" role="dialog" aria-modal="true" aria-label="${isEdit?'編輯任務':'新增任務'}"><div class="row"><div><div class="muted">STUDYFLOW</div><h2>${isEdit?'編輯任務':'新增任務'}</h2></div><button class="ghost" type="button" data-action="cancel-task">取消</button></div><label for="taskTitle">任務內容</label><input id="taskTitle" value="${esc(value.title)}" placeholder="例如：數學第三章"/><label for="taskDateTime">日期與時間</label><input id="taskDateTime" class="datetime-center" type="datetime-local" value="${esc(dateTime)}"/><div class="formhint">在同一個小視窗中選擇日期與開始時間。</div><input id="taskUnit" type="hidden" value="${esc(value.unit || '')}"/><input id="taskId" type="hidden" value="${esc(value.id || '')}"/><div class="actions"><button class="primary-action" type="button" data-action="save-task">${isEdit?'儲存修改':'建立任務'}</button></div></div></div>`);
   }
 
   function restEditor(afterTaskId) {
