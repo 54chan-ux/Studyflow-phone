@@ -48,7 +48,7 @@ label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30px}
 .notice{padding:10px 12px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px;margin-bottom:12px}
 .completed-list{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--soft)}.completed-list summary{font-size:13px;color:var(--muted);cursor:pointer}.completed-list .item{padding:8px 0}.done-name{color:var(--muted);text-decoration:line-through}.color-row{display:flex;align-items:center;gap:12px}.color-row input[type=color]{width:54px;height:42px;padding:3px;border-radius:10px}.swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.swatch{width:30px;height:30px;padding:0;border:2px solid var(--line);border-radius:50%}.swatch.selected{outline:2px solid var(--fg);outline-offset:2px}
-.iconbtn{padding:7px 9px;font-size:12px;border-radius:9px}.item-actions{display:flex;gap:4px;flex:0 0 auto}.fieldgrid{display:grid;gap:9px}.unit-choice{display:flex;align-items:center;gap:9px;padding:8px 0}.unit-choice input{width:20px;flex:0 0 auto}.formhint{font-size:12px;color:var(--muted);margin-top:6px}
+.rest-between{text-align:center;color:var(--muted);font-size:12px;padding:9px 0;border-bottom:1px dashed var(--line)}.iconbtn{padding:7px 9px;font-size:12px;border-radius:9px}.item-actions{display:flex;gap:4px;flex:0 0 auto}.fieldgrid{display:grid;gap:9px}.unit-choice{display:flex;align-items:center;gap:9px;padding:8px 0}.unit-choice input{width:20px;flex:0 0 auto}.formhint{font-size:12px;color:var(--muted);margin-top:6px}
 </style>
 </head>
 <body>
@@ -70,7 +70,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
   'use strict';
   const KEY = 'studyflow_v1';
   const THEME_KEY = 'studyflow_theme';
-  const EMPTY_DB = () => ({subjects: [], units: [], tasks: [], exams: [], examUnits: []});
+  const EMPTY_DB = () => ({subjects: [], units: [], tasks: [], exams: [], examUnits: [], restMinutes: 10});
   let db = EMPTY_DB();
   let tab = 'today';
 
@@ -92,7 +92,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
       units: Array.isArray(source.units) ? source.units : [],
       tasks: Array.isArray(source.tasks) ? source.tasks : [],
       exams: Array.isArray(source.exams) ? source.exams : [],
-      examUnits: Array.isArray(source.examUnits) ? source.examUnits : []
+      examUnits: Array.isArray(source.examUnits) ? source.examUnits : [],
+      restMinutes: [0,5,10,15,20,30].includes(Number(source.restMinutes)) ? Number(source.restMinutes) : 10
     };
   }
   try {
@@ -127,20 +128,31 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
     const unit = task.unit ? db.units.find(x => x.id === task.unit) : null;
     return `<div class="item">
       <input class="check" type="checkbox" data-action="toggle-task" data-id="${esc(task.id)}" ${task.done ? 'checked' : ''} aria-label="完成任務">
-      <div class="grow"><strong>${esc(task.title)}</strong><small>${unit ? esc(unit.name) : ''}</small></div>
+      <div class="grow"><strong>${esc(task.title)}</strong><small>${unit ? esc(unit.name) + ' · ' : ''}${task.time ? '🕒 ' + esc(task.time) : '未設定時間'}</small></div>
       <div class="item-actions"><button class="ghost iconbtn" type="button" data-action="edit-task" data-id="${esc(task.id)}">✏️</button><button class="ghost danger iconbtn" type="button" data-action="delete-task" data-id="${esc(task.id)}">🗑️</button></div>
     </div>`;
   }
 
   function todayView() {
-    const tasks = db.tasks.filter(t => t.date === localDate());
+    const tasks = db.tasks.filter(t => t.date === localDate()).sort((a,b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
     const done = tasks.filter(t => t.done).length;
     const open = tasks.filter(t => !t.done);
+    const rest = Number(db.restMinutes || 0);
+    const scheduled = open.map((task, i) => taskRow(task) + (rest && i < open.length - 1 ? `<div class="rest-between">☕ 休息 ${rest} 分鐘</div>` : '')).join('');
     return `<div class="panel"><div class="row"><div><div class="muted">今天的學習進度</div><div class="big">${percent(done, tasks.length)}%</div></div><span class="pill">${done} / ${tasks.length} 完成</span></div><div class="bar"><span style="width:${percent(done, tasks.length)}%"></span></div></div>
       <div class="sectionhead"><h2>今日任務</h2><button type="button" data-action="add-task">＋ 新增</button></div>
-      ${open.length ? `<div class="panel">${open.map(taskRow).join('')}</div>` : `<div class="panel empty">${tasks.length ? '今天的任務都完成了！' : '今天還沒有任務，新增一項開始吧。'}</div>`}
+      ${open.length ? `<div class="panel">${scheduled}</div>` : `<div class="panel empty">${tasks.length ? '今天的任務都完成了！' : '今天還沒有任務，新增一項開始吧。'}</div>`}
       ${done ? `<div class="sectionhead"><h2>已完成</h2><span class="pill">${done}</span></div><div class="panel">${tasks.filter(t => t.done).map(taskRow).join('')}</div>` : ''}
+      <div class="sectionhead"><h2>休息</h2><button class="secondary" type="button" data-action="rest-toggle">☕ 休息設定</button></div><div class="panel hidden" id="restSettingsPanel"><label for="restMinutes">每兩個未完成任務之間休息</label><select id="restMinutes">${[0,5,10,15,20,30].map(n => `<option value="${n}" ${rest===n?'selected':''}>${n===0?'不安排休息':n+' 分鐘'}</option>`).join('')}</select><div class="formhint">休息會顯示在今日任務之間，不會算成一項任務。</div></div>
       <div class="sectionhead"><h2>快速新增任務</h2></div><div class="panel"><input id="quickTask" placeholder="例如：完成英文單字 20 個"><div class="actions"><button type="button" data-action="quick-add">加入今日任務</button></div></div>`;
+  }
+
+  function taskEditor(task, unitId) {
+    const isEdit = !!task;
+    const value = task || {title: (unitId && db.units.find(x=>x.id===unitId)?.name) || '', date:localDate(), time:'', unit:unitId || ''};
+    tab = 'today';
+    $('#tabs').querySelectorAll('button[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === 'today'));
+    $('#app').innerHTML = `<div class="panel"><div class="row"><h2>${isEdit?'編輯任務':'新增任務'}</h2><button class="ghost" type="button" data-action="cancel-task">取消</button></div><label for="taskTitle">任務內容</label><input id="taskTitle" value="${esc(value.title)}" placeholder="例如：數學第三章"/><label for="taskDate">日期</label><input id="taskDate" type="date" value="${esc(value.date || localDate())}"/><label for="taskTime">開始時間（可不填）</label><input id="taskTime" type="time" value="${esc(value.time || '')}"/><input id="taskUnit" type="hidden" value="${esc(value.unit || '')}"/><input id="taskId" type="hidden" value="${esc(value.id || '')}"/><div class="actions"><button type="button" data-action="save-task">${isEdit?'儲存修改':'建立任務'}</button></div></div>`;
   }
 
   function subjectsView() {
@@ -208,20 +220,23 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
     const name = prompt('單元名稱');
     if (name && name.trim()) { db.units.push({id:makeId(), subject:subjectId, name:name.trim(), done:false}); save(); }
   }
-  function addTask() {
-    const title = prompt('任務內容');
-    if (title && title.trim()) { db.tasks.push({id:makeId(), title:title.trim(), date:localDate(), done:false}); save(); }
-  }
+  function addTask() { taskEditor(null, ''); }
   function quickAdd() {
     const field = $('#quickTask');
-    if (field && field.value.trim()) { db.tasks.push({id:makeId(), title:field.value.trim(), date:localDate(), done:false}); save(); }
+    if (field && field.value.trim()) { db.tasks.push({id:makeId(), title:field.value.trim(), date:localDate(), time:'', done:false}); save(); }
     else alert('請先輸入任務內容。');
+  }
+  function saveTaskForm() {
+    const title=$('#taskTitle').value.trim(), date=$('#taskDate').value, time=$('#taskTime').value, unit=$('#taskUnit').value, id=$('#taskId').value;
+    if (!title || !date) { alert('請填寫任務內容和日期。'); return; }
+    if (id) { const t=db.tasks.find(x=>x.id===id); if(t) Object.assign(t,{title,date,time,unit:unit||undefined}); }
+    else db.tasks.push({id:makeId(),title,date,time,done:false,unit:unit||undefined});
+    save();
   }
   function makeTask(unitId) {
     const unit = db.units.find(x => x.id === unitId);
     if (!unit) return;
-    db.tasks.push({id:makeId(), title:unit.name, date:localDate(), done:false, unit:unitId});
-    save(); alert('已加入今日任務！');
+    taskEditor(null, unitId);
   }
   function deleteTask(id) {
     if (confirm('確定刪除此任務？')) { db.tasks = db.tasks.filter(x => x.id !== id); save(); }
@@ -249,6 +264,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
     const collection = type === 'subject' ? db.subjects : type === 'unit' ? db.units : type === 'task' ? db.tasks : db.exams;
     const item = collection.find(x => x.id === id);
     if (!item) return;
+    if (type === 'task') { taskEditor(item); return; }
     const field = type === 'subject' ? 'name' : type === 'unit' ? 'name' : type === 'task' ? 'title' : 'name';
     const label = type === 'subject' ? '科目名稱' : type === 'unit' ? '單元名稱' : type === 'task' ? '任務內容' : '考試名稱';
     const value = prompt('修改' + label, item[field] || '');
@@ -315,6 +331,9 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
     else if (action === 'add-unit') addUnit(id);
     else if (action === 'add-task') addTask();
     else if (action === 'quick-add') quickAdd();
+    else if (action === 'rest-toggle') { const panel=$('#restSettingsPanel'); if(panel) panel.classList.toggle('hidden'); }
+    else if (action === 'save-task') saveTaskForm();
+    else if (action === 'cancel-task') render();
     else if (action === 'make-task') makeTask(id);
     else if (action === 'delete-task') deleteTask(id);
     else if (action === 'edit-task') editItem('task', id);
@@ -348,7 +367,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
     const input = event.target;
     const action = input.dataset.action;
     const id = input.dataset.id;
-    if (action === 'toggle-task') {
+    if (input.id === 'restMinutes') { db.restMinutes = Number(input.value); save(); }
+    else if (action === 'toggle-task') {
       const task = db.tasks.find(x => x.id === id);
       if (task) { task.done = input.checked; if (task.unit) { const linkedUnit = db.units.find(x => x.id === task.unit); if (linkedUnit) linkedUnit.done = input.checked; } save(); }
     } else if (action === 'toggle-unit') {
