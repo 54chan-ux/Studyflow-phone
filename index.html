@@ -20,8 +20,8 @@ button,input,select{font:inherit}
 button{border:0;border-radius:12px;background:var(--fg);color:var(--bg);padding:11px 14px;font-weight:650;cursor:pointer}
 button.secondary{background:var(--soft);color:var(--fg)}
 button.ghost{background:transparent;color:var(--fg);padding:8px}
-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;display:flex;align-items:center;justify-content:space-between;gap:3px;width:calc(100% - 28px);max-width:520px;height:56px;padding:6px;background:color-mix(in srgb,var(--card) 88%,transparent);border:1px solid var(--line);border-radius:999px;box-shadow:0 6px 24px #00000018;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
-nav button{flex:1;min-width:0;height:42px;min-height:42px;display:flex;align-items:center;justify-content:center;white-space:nowrap;background:transparent;color:var(--muted);font-size:12px;font-weight:600;padding:0 2px;border-radius:999px;line-height:1}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;display:flex;align-items:stretch;justify-content:space-between;gap:3px;width:calc(100% - 28px);max-width:520px;height:56px;padding:6px;background:color-mix(in srgb,var(--card) 88%,transparent);border:1px solid var(--line);border-radius:999px;box-shadow:0 6px 24px #00000018;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+nav button{flex:1 1 0;min-width:0;width:0;height:42px;min-height:42px;max-height:42px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;white-space:nowrap;background:transparent;color:var(--muted);font-size:12px;font-weight:600;padding:0 2px;margin:0;border-radius:999px;line-height:1;align-self:center}
 nav button.active{background:var(--fg);color:var(--bg)}
 main{padding:0 16px 125px;max-width:700px;margin:auto}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
@@ -56,12 +56,12 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 30p
 input,select{min-height:46px;text-align:left}button{min-height:40px;display:inline-flex;align-items:center;justify-content:center}button:disabled{opacity:.4}
 .panel{padding:17px}.sectionhead{gap:10px}.sectionhead h2{margin:0}
 .modal-backdrop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,10,10,.34);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fadeIn .16s ease}
-.task-modal{width:min(100%,390px);max-height:min(82vh,620px);overflow:auto;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:24px;padding:21px;box-shadow:0 20px 60px #0003;animation:modalUp .18s ease-out}
+.task-modal{width:min(100%,390px);max-height:min(82vh,620px);overflow-y:auto;overscroll-behavior:contain;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:24px;padding:21px;box-shadow:0 20px 60px #0003;animation:modalUp .18s ease-out}.task-modal>.row:first-child{position:sticky;top:-21px;z-index:3;background:var(--card);padding:4px 0 10px;margin: -4px 0 10px}.task-modal>.actions:last-child{position:sticky;bottom:-21px;z-index:3;background:var(--card);padding:12px 0 2px;margin:18px 0 -2px;border-top:1px solid var(--line)}
 .datetime-center{text-align:center;text-align-last:center;padding-left:8px;padding-right:8px}
 .datetime-center::-webkit-date-and-time-value{text-align:center;margin:0 auto;width:100%}
 .datetime-center::-webkit-calendar-picker-indicator{margin-left:6px}
 .task-modal h2{margin:3px 0 0}.task-modal .row{margin-bottom:10px}.task-modal .actions{margin-top:18px}.task-modal .primary-action{width:100%}
-.rest-chip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;margin:3px 0 7px 34px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px}
+.stats-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stats-metric{background:var(--soft);border-radius:14px;padding:12px 10px;min-width:0}.stats-metric .big{font-size:23px}.stats-detail{border-top:1px solid var(--line);padding-top:13px;margin-top:13px}.stats-detail summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-weight:650;font-size:14px}.stats-detail summary::-webkit-details-marker{display:none}.stats-detail summary:after{content:'＋';color:var(--muted);font-weight:400}.stats-detail[open] summary:after{content:'－'}.stats-detail-body{padding-top:12px}.code-field{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:center;margin:8px 0}.code-field label{margin:0}.code-field input{min-height:40px}.rest-chip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;margin:3px 0 7px 34px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes modalUp{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:390px){.head-actions button{padding:8px 9px;font-size:12px}.item-actions{gap:1px}.iconbtn{padding:7px 6px;font-size:11px}.task-item .grow strong{font-size:14px}}
 
@@ -111,7 +111,8 @@ input,select{min-height:46px;text-align:left}button{min-height:40px;display:inli
       exams: Array.isArray(source.exams) ? source.exams : [],
       examUnits: Array.isArray(source.examUnits) ? source.examUnits : [],
       rests: Array.isArray(source.rests) ? source.rests : [],
-      testRecords: Array.isArray(source.testRecords) ? source.testRecords : []
+      testRecords: Array.isArray(source.testRecords) ? source.testRecords : [],
+      examCodeSettings: source.examCodeSettings && typeof source.examCodeSettings === 'object' ? source.examCodeSettings : {}
     };
   }
   try {
@@ -228,10 +229,41 @@ input,select{min-height:46px;text-align:left}button{min-height:40px;display:inli
       <div class="panel"><h2>各科目進度</h2>${subjects || '<div class="empty">新增科目後會顯示統計。</div>'}</div>`;
   }
 
+  const TEST_TYPES = ['課堂小考','黃卷','段考','模擬考'];
+  function getExamCodeSettings() {
+    const current = db.examCodeSettings || {};
+    const subjectCodes = {...(current.subjectCodes || {})};
+    db.subjects.forEach((subject, index) => { if (!subjectCodes[subject.id]) subjectCodes[subject.id] = String(index + 1).padStart(2, '0'); });
+    const typeCodes = {...(current.typeCodes || {})};
+    ['課堂小考','黃卷','段考','模擬考'].forEach((type, index) => { if (!typeCodes[type]) typeCodes[type] = String(index + 1); });
+    return {subjectCodes, typeCodes, serialWidth: Math.max(1, Math.min(4, Number(current.serialWidth) || 1)), template: current.template || '{subject}{type}{serial}'};
+  }
+  function makeExamCode(subjectId, type) {
+    const settings = getExamCodeSettings();
+    const subjectCode = settings.subjectCodes[subjectId] || '00';
+    const typeCode = settings.typeCodes[type] || '0';
+    const sameKind = (db.testRecords || []).filter(r => r.subject === subjectId && r.type === type);
+    const serial = String(sameKind.length + 1).padStart(settings.serialWidth, '0');
+    return settings.template.replace(/\{subject\}/g, subjectCode).replace(/\{type\}/g, typeCode).replace(/\{serial\}/g, serial);
+  }
+  function saveExamCodeSettings() {
+    const subjectCodes = {};
+    document.querySelectorAll('[data-subject-code]').forEach(input => subjectCodes[input.dataset.subjectCode] = input.value.trim());
+    const typeCodes = {};
+    document.querySelectorAll('[data-type-code]').forEach(input => typeCodes[input.dataset.typeCode] = input.value.trim());
+    const width = Number($('#serialWidth')?.value || 1);
+    const template = ($('#codeTemplate')?.value || '{subject}{type}{serial}').trim();
+    if (!template.includes('{subject}') || !template.includes('{type}') || !template.includes('{serial}')) { alert('編號格式必須包含 {subject}、{type}、{serial} 三個欄位。'); return; }
+    if (Object.values(subjectCodes).some(v => !v) || Object.values(typeCodes).some(v => !v)) { alert('代碼不能留空。'); return; }
+    db.examCodeSettings = {subjectCodes, typeCodes, serialWidth:width, template};
+    save();
+    alert('考試編號規則已儲存。新紀錄會使用新規則，舊紀錄編號不變。');
+  }
+
   function testRecordEditor() {
     if (!db.subjects.length) { alert('請先到「科目」新增科目。'); return; }
     const subjectChoices = db.subjects.map((x,i) => `<label class="unit-choice"><input type="radio" name="testSubject" value="${esc(x.id)}" ${i===0?'checked':''}><span>${esc(x.name)}</span></label>`).join('');
-    $('#app').insertAdjacentHTML('beforeend', `<div class="modal-backdrop" data-action="modal-close"><div class="task-modal" role="dialog" aria-modal="true" aria-label="新增考試成績"><div class="row"><div><div class="muted">STUDYFLOW</div><h2>新增考試紀錄</h2></div><button class="ghost" type="button" data-action="cancel-task">取消</button></div><label>考試科目（選一科）</label><div>${subjectChoices}</div><label for="testType">考試類型</label><select id="testType"><option>課堂小考</option><option>黃卷</option><option>段考</option><option>模擬考</option></select><label for="testScore">成績（滿分 100）</label><input id="testScore" type="number" min="0" max="100" step="0.1" placeholder="例如：86"><label for="testDate">考試日期</label><input id="testDate" type="date" value="${localDate()}"><label>這張考卷抓到的讀書盲點</label><div class="row" style="gap:6px"><input id="blindspotInput" placeholder="例如：1-1 一次函數觀念"><button class="secondary" type="button" data-action="add-blindspot-draft">新增</button></div><div id="blindspotDrafts" class="stack" style="margin-top:8px"></div><div class="formhint">新增的盲點會自動加入該科目的單元清單，並標示來源考卷。</div><div class="actions"><button class="primary-action" type="button" data-action="save-test-record">儲存考試紀錄</button></div></div></div>`);
+    $('#app').insertAdjacentHTML('beforeend', `<div class="modal-backdrop" data-action="modal-close"><div class="task-modal" role="dialog" aria-modal="true" aria-label="新增考試成績"><div class="row"><div><div class="muted">STUDYFLOW</div><h2>新增考試紀錄</h2></div><button class="ghost" type="button" data-action="cancel-task">取消</button></div><label for="testName">考試名稱</label><input id="testName" placeholder="例如：第二次段考數學"/><label>考試科目（選一科）</label><div>${subjectChoices}</div><label for="testType">考試類型</label><select id="testType">${TEST_TYPES.map(type=>`<option>${type}</option>`).join('')}</select><label for="testScore">成績（滿分 100）</label><input id="testScore" type="number" min="0" max="100" step="0.1" placeholder="例如：86"><label for="testDate">考試日期</label><input id="testDate" type="date" value="${localDate()}"><label>這張考卷抓到的讀書盲點</label><div class="row" style="gap:6px"><input id="blindspotInput" placeholder="例如：1-1 一次函數觀念"><button class="secondary" type="button" data-action="add-blindspot-draft">新增</button></div><div id="blindspotDrafts" class="stack" style="margin-top:8px"></div><div class="formhint">新增的盲點會自動加入該科目的單元清單，並標示來源考卷。</div><div class="actions"><button class="primary-action" type="button" data-action="save-test-record">儲存考試紀錄</button></div></div></div>`);
     window.__studyflowBlindspots = [];
   }
   function renderBlindspotDrafts() {
@@ -244,8 +276,10 @@ input,select{min-height:46px;text-align:left}button{min-height:40px;display:inli
     const scoreField=$('#testScore'), score=Number(scoreField?.value);
     if(!subject){alert('請選擇考試科目。');return;}
     if(!scoreField || scoreField.value.trim()==='' || !Number.isFinite(score) || score<0 || score>100){alert('成績請填寫 0 到 100 之間的數字。');return;}
+    const name=$('#testName')?.value.trim();
+    if(!name){alert('請輸入考試名稱。');return;}
     const type=$('#testType').value, date=$('#testDate').value || localDate();
-    const record={id:makeId(),subject:subject.value,type,score,date,blindspots:[]};
+    const record={id:makeId(),name,code:makeExamCode(subject.value,type),subject:subject.value,type,score,date,blindspots:[]};
     (window.__studyflowBlindspots||[]).forEach(name=>{
       let unit=db.units.find(u=>u.subject===subject.value && u.name.trim().toLowerCase()===name.trim().toLowerCase());
       if(!unit){unit={id:makeId(),subject:subject.value,name,done:false,sourceExamIds:[record.id]};db.units.push(unit);} else {unit.done=false;unit.sourceExamIds=unit.sourceExamIds|| (unit.sourceExamId?[unit.sourceExamId]:[]); if(!unit.sourceExamIds.includes(record.id))unit.sourceExamIds.push(record.id);}
@@ -270,13 +304,18 @@ input,select{min-height:46px;text-align:left}button{min-height:40px;display:inli
     const blindspots=[...blindspotMap.values()].sort((a,b)=>b.count-a.count);
     const max=Math.max(1,...blindspots.map(b=>b.count));
     const blindRows=blindspots.map(b=>{const unit=db.units.find(u=>u.id===b.unitId);const solved=!!unit?.done;return `<div style="margin:13px 0"><div class="row"><strong>${esc(b.name)}</strong><span class="muted">${solved?'已改善':'待加強'} · 累積 ${b.count} 次</span></div><div class="bar"><span style="width:${solved?8:Math.max(8,b.count/max*100)}%;opacity:${solved?.55:1}"></span></div></div>`;}).join('');
-    const history=subjectRecords.slice().reverse().map(r=>`<div class="item"><div class="grow"><strong>${esc(r.type)}</strong><small>${esc(r.date)} · ${esc(r.blindspots?.length||0)} 個盲點</small></div><strong>${esc(r.score)} 分</strong><button class="ghost danger iconbtn" type="button" data-action="delete-test-record" data-id="${esc(r.id)}">刪除</button></div>`).join('');
+    const history=subjectRecords.slice().reverse().map(r=>`<div class="item"><div class="grow"><strong>${esc(r.name || r.type)}</strong><small>${esc(r.code || '尚無編號')} · ${esc(r.type)} · ${esc(r.date)} · ${esc(r.blindspots?.length||0)} 個盲點</small></div><strong>${esc(r.score)} 分</strong><button class="ghost danger iconbtn" type="button" data-action="delete-test-record" data-id="${esc(r.id)}">刪除</button></div>`).join('');
     const avg=subjectRecords.length?Math.round(subjectRecords.reduce((a,r)=>a+Number(r.score||0),0)/subjectRecords.length*10)/10:0;
-    return `<div class="row sectionhead"><h2>考試統計</h2><button type="button" data-action="add-test-record">＋ 新增紀錄</button></div><div class="panel"><label for="examStatsSubject">選擇科目</label><select id="examStatsSubject" data-action="filter-exam-stats">${options||'<option value="">尚無科目</option>'}</select><div class="row" style="margin-top:14px"><div><div class="muted">累積考試</div><div class="big">${subjectRecords.length}</div></div><div><div class="muted">平均成績</div><div class="big">${subjectRecords.length?avg+'分':'—'}</div></div><div><div class="muted">最高成績</div><div class="big">${subjectRecords.length?Math.max(...subjectRecords.map(r=>Number(r.score)||0))+'分':'—'}</div></div></div></div><div class="panel"><h2>成績長期變化</h2>${chart}</div><div class="panel"><h2>讀書盲點追蹤</h2><div class="muted">出現次數越多，長條越長；完成對應單元後會標記為已改善並淡化。</div>${blindRows||'<div class="empty">這科目前還沒有記錄盲點。</div>'}</div><div class="panel"><h2>考試紀錄</h2>${history||'<div class="empty">尚無考試紀錄。</div>'}</div>`;
+    const best=subjectRecords.length?Math.max(...subjectRecords.map(r=>Number(r.score)||0)):'—';
+    return `<div class="row sectionhead"><h2>成績總覽</h2><button type="button" data-action="add-test-record">＋ 新增</button></div><div class="panel"><label for="examStatsSubject">科目</label><select id="examStatsSubject" data-action="filter-exam-stats">${options||'<option value="">尚無科目</option>'}</select><div class="stats-summary" style="margin-top:12px"><div class="stats-metric"><div class="muted">考試</div><div class="big">${subjectRecords.length}</div></div><div class="stats-metric"><div class="muted">平均</div><div class="big">${subjectRecords.length?avg:'—'}</div></div><div class="stats-metric"><div class="muted">最高</div><div class="big">${best}</div></div></div></div><div class="panel"><details class="stats-detail"><summary>成績變化 <span class="muted">${subjectRecords.length} 筆紀錄</span></summary><div class="stats-detail-body">${chart}</div></details><details class="stats-detail"><summary>讀書盲點 <span class="muted">${blindspots.length} 項</span></summary><div class="stats-detail-body"><div class="muted">完成對應單元後會自動標記為已改善。</div>${blindRows||'<div class="empty">目前沒有盲點紀錄。</div>'}</div></details><details class="stats-detail"><summary>考試紀錄 <span class="muted">${subjectRecords.length} 筆</span></summary><div class="stats-detail-body">${history||'<div class="empty">尚無考試紀錄。</div>'}</div></details></div>`;
   }
 
   function settingsView() {
-    return `<div class="panel"><h2>資料備份</h2><p class="muted">資料只存在這台 iPhone，包含科目、任務、考試成績與盲點紀錄。建議定期匯出備份。</p><div class="actions"><button type="button" data-action="backup">匯出備份</button><button class="secondary" type="button" data-action="restore-pick">匯入備份</button><input id="restoreFile" class="hidden" type="file" accept="application/json"></div></div>
+    const cfg=getExamCodeSettings();
+    const subjectFields=db.subjects.map(subject=>`<div class="code-field"><label>${esc(subject.name)} 代碼</label><input data-subject-code="${esc(subject.id)}" value="${esc(cfg.subjectCodes[subject.id]||'')}" maxlength="8" aria-label="${esc(subject.name)}代碼"></div>`).join('');
+    const typeFields=TEST_TYPES.map(type=>`<div class="code-field"><label>${esc(type)}代碼</label><input data-type-code="${esc(type)}" value="${esc(cfg.typeCodes[type]||'')}" maxlength="8" aria-label="${esc(type)}代碼"></div>`).join('');
+    return `<div class="panel"><h2>考試編號規則</h2><p class="muted">在這裡統一修改科目代碼、考試類型代碼及編號格式。修改後只套用到新紀錄，舊紀錄不會被改動。</p><h2 style="margin-top:16px">科目代碼</h2>${subjectFields||'<div class="empty">先新增科目，就能設定科目代碼。</div>'}<h2 style="margin-top:18px">考試類型代碼</h2>${typeFields}<label for="serialWidth">流水號位數</label><select id="serialWidth">${[1,2,3,4].map(n=>`<option value="${n}" ${cfg.serialWidth===n?'selected':''}>${n} 位</option>`).join('')}</select><label for="codeTemplate">編號組合格式</label><input id="codeTemplate" value="${esc(cfg.template)}" placeholder="{subject}{type}{serial}"><div class="formhint">可使用 {subject}（科目）、{type}（類型）、{serial}（流水號），也可自行加入符號。例如：{subject}-{type}-{serial}</div><div class="actions"><button type="button" data-action="save-code-settings">儲存編號規則</button></div></div>
+      <div class="panel"><h2>資料備份</h2><p class="muted">資料只存在這台 iPhone，包含科目、任務、考試成績與盲點紀錄。建議定期匯出備份。</p><div class="actions"><button type="button" data-action="backup">匯出備份</button><button class="secondary" type="button" data-action="restore-pick">匯入備份</button><input id="restoreFile" class="hidden" type="file" accept="application/json"></div></div>
       <div class="panel"><h2>資料管理</h2><p class="muted">清除資料會刪除這台裝置上的所有科目、單元、任務與考試。</p><button class="secondary danger" type="button" data-action="clear-all">清除所有資料</button></div>
       <div class="panel"><h2>使用說明</h2><p class="muted">在 Safari 開啟 StudyFlow，按分享圖示，再選「加入主畫面」，即可從 iPhone 主畫面開啟。</p></div>`;
   }
@@ -437,6 +476,7 @@ input,select{min-height:46px;text-align:left}button{min-height:40px;display:inli
     }
     else if (action === 'add-exam') addExam();
     else if (action === 'add-test-record') testRecordEditor();
+    else if (action === 'save-code-settings') saveExamCodeSettings();
     else if (action === 'add-blindspot-draft') { const f=$('#blindspotInput'); const v=f?.value.trim(); if(v){window.__studyflowBlindspots=window.__studyflowBlindspots||[]; if(!window.__studyflowBlindspots.some(x=>x.toLowerCase()===v.toLowerCase()))window.__studyflowBlindspots.push(v); f.value='';renderBlindspotDrafts();} }
     else if (action === 'remove-blindspot-draft') { window.__studyflowBlindspots=(window.__studyflowBlindspots||[]).filter((_,i)=>i!==Number(button.dataset.index));renderBlindspotDrafts(); }
     else if (action === 'save-test-record') saveTestRecord();
